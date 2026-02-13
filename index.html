@@ -154,15 +154,18 @@ coins:1000
 }catch(e){error.innerText=e.message;}
 };
 
-onAuthStateChanged(auth,user=>{
-if(user){
-currentUser=user;
-auth.classList.add("hidden");
-dashboard.classList.remove("hidden");
-}else{
-auth.classList.remove("hidden");
-dashboard.classList.add("hidden");
-}
+const authContainer = document.getElementById("auth");
+const dashboardContainer = document.getElementById("dashboard");
+
+onAuthStateChanged(auth,(user)=>{
+    if(user){
+        currentUser = user;
+        authContainer.classList.add("hidden");
+        dashboardContainer.classList.remove("hidden");
+    } else {
+        authContainer.classList.remove("hidden");
+        dashboardContainer.classList.add("hidden");
+    }
 });
 
 window.logout=()=>signOut(auth);
