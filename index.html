@@ -1,320 +1,266 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Green Arena - Ludo & Chess Multiplayer</title>
+<title>Green Arena</title>
+
 <style>
-body{font-family:'Segoe UI',sans-serif;margin:0;padding:0;display:flex;justify-content:center;align-items:center;min-height:100vh;background:linear-gradient(135deg,#1abc9c,#16a085);}
-.container{background:rgba(255,255,255,0.12);backdrop-filter:blur(15px);border-radius:25px;padding:25px;width:95%;max-width:550px;text-align:center;box-shadow:0 0 30px rgba(0,0,0,0.25);transition:transform 0.5s,opacity 0.5s;}
-h1,h2,h3,h4{color:white;margin-bottom:15px;}
-input{width:90%;padding:12px;margin:8px 0;border-radius:12px;border:none;outline:none;font-size:16px;}
-button{padding:12px 25px;margin:10px;border-radius:12px;border:none;cursor:pointer;font-weight:bold;background:#ffce54;color:#000;box-shadow:0 4px 8px rgba(0,0,0,0.2);transition:0.3s;}
-button:hover{background:#ffd633;}
-.game-selection{display:flex;flex-direction:column;gap:15px;margin-top:20px;}
-.game-card{background: rgba(255,255,255,0.15);padding:15px;border-radius:15px;cursor:pointer;color:white;transition:0.3s;}
-.game-card:hover{background: rgba(255,255,255,0.25);}
-#gameScreen{display:none;}
-#gameArea{margin-top:20px;}
-#waitingMessage{color:yellow;font-weight:bold;margin-top:15px;}
-.fade-in{animation: fadeIn 0.5s forwards;}
-@keyframes fadeIn{from{opacity:0; transform: translateY(20px);}to{opacity:1; transform: translateY(0);}}
-/* Ludo */
-.ludo-board{display:grid;grid-template-columns:repeat(15,30px);grid-template-rows:repeat(15,30px);gap:2px;justify-content:center;margin:auto;}
-.ludo-cell{width:30px;height:30px;border-radius:4px;background:#eee;display:flex;align-items:center;justify-content:center;}
-.piece{width:20px;height:20px;border-radius:50%;cursor:pointer;transition:transform 0.2s;}
-.piece:hover{transform: scale(1.3);}
-.dice{margin-top:15px;padding:10px 20px;border-radius:12px;background:#fff;color:#000;font-weight:bold;cursor:pointer;}
-/* Chess */
-.chess-board{display:grid;grid-template-columns:repeat(8,50px);grid-template-rows:repeat(8,50px);margin:auto;gap:1px;}
-.chess-cell{width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-size:32px;cursor:pointer;user-select:none;}
-.chess-cell.light{background:#f0d9b5;}
-.chess-cell.dark{background:#b58863;}
-.chess-cell.selected{outline:3px solid yellow;}
+body{
+margin:0;
+font-family:Segoe UI, sans-serif;
+background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+color:white;
+overflow:hidden;
+}
+.hidden{display:none;}
+.center{
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+flex-direction:column;
+}
+.card{
+background:rgba(255,255,255,0.08);
+backdrop-filter:blur(15px);
+padding:30px;
+border-radius:20px;
+width:350px;
+box-shadow:0 10px 40px rgba(0,0,0,0.4);
+transition:0.4s;
+}
+input{
+width:100%;
+padding:12px;
+margin:8px 0;
+border:none;
+border-radius:8px;
+}
+button{
+width:100%;
+padding:12px;
+margin-top:10px;
+border:none;
+border-radius:8px;
+background:#00c9a7;
+color:white;
+font-weight:bold;
+cursor:pointer;
+transition:0.3s;
+}
+button:hover{background:#00b091;}
+.board{
+display:grid;
+grid-template-columns:repeat(8,1fr);
+width:90vmin;
+height:90vmin;
+margin:auto;
+}
+.square{
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:4vmin;
+cursor:pointer;
+transition:0.2s;
+}
+.light{background:#f0d9b5;}
+.dark{background:#b58863;}
+.selected{box-shadow:inset 0 0 0 4px yellow;}
 </style>
 </head>
+
 <body>
 
 <!-- AUTH -->
-<div class="container fade-in" id="authBox">
-<h1>Green Arena</h1>
-<h2>Casual Online Game Platform</h2>
-<div id="loginForm">
-<input type="text" id="usernameLogin" placeholder="Username">
-<input type="password" id="passwordLogin" placeholder="Password">
-<button onclick="loginUser()">Login</button>
-<p>or <button onclick="showRegister()">Register</button></p>
-</div>
-<div id="registerForm" style="display:none;">
-<input type="text" id="usernameReg" placeholder="Username">
-<input type="email" id="emailReg" placeholder="Email">
-<input type="password" id="passwordReg" placeholder="Password">
-<button onclick="registerUser()">Register</button>
-<p>or <button onclick="showLogin()">Login</button></p>
+<div id="auth" class="center">
+<div class="card">
+<h2 id="formTitle">Register</h2>
+<input id="name" placeholder="Full Name">
+<input id="email" placeholder="Email">
+<input id="password" type="password" placeholder="Password">
+<button id="submitBtn">Register</button>
+<p id="switch" style="cursor:pointer;text-align:center;">Already have account? Login</p>
+<p id="error" style="color:#ff6b6b;"></p>
 </div>
 </div>
 
-<!-- MAIN MENU -->
-<div class="container fade-in" id="mainBox" style="display:none;">
-<h3 id="welcomeText"></h3>
-<h4>Coins: <span id="coins">0</span></h4>
-<button onclick="logoutUser()">Logout</button>
-<h3>Select a Game:</h3>
-<div class="game-selection">
-<div class="game-card" onclick="joinGame('Ludo')"><h4>Ludo</h4><p>Play against another player and win coins</p></div>
-<div class="game-card" onclick="joinGame('Chess')"><h4>Chess</h4><p>Challenge real players in a strategic battle</p></div>
-</div>
+<!-- DASHBOARD -->
+<div id="dashboard" class="hidden center">
+<h2>Green Arena</h2>
+<button onclick="createGame('chess')">Play Chess</button>
+<button onclick="createGame('ludo')">Play Ludo</button>
+<button onclick="logout()">Logout</button>
 </div>
 
-<!-- GAME SCREEN -->
-<div class="container fade-in" id="gameScreen">
+<!-- GAME AREA -->
+<div id="gameArea" class="hidden center">
 <h3 id="gameTitle"></h3>
-<div id="gameArea"></div>
-<div id="waitingMessage"></div>
-<button onclick="backToMain()">Back</button>
+<div id="chessBoard" class="board hidden"></div>
+<button onclick="leaveGame()">Leave Game</button>
 </div>
 
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script type="module">
 
-<script>
-// ===== FIREBASE CONFIG =====
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut }
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getDatabase, ref, set, get, push, onValue, update, remove }
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+/* 🔥 REPLACE WITH YOUR FIREBASE CONFIG */
 const firebaseConfig={
-    apiKey:"YOUR_API_KEY",
-    authDomain:"YOUR_PROJECT_ID.firebaseapp.com",
-    databaseURL:"https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
-    projectId:"YOUR_PROJECT_ID",
-    storageBucket:"YOUR_PROJECT_ID.appspot.com",
-    messagingSenderId:"YOUR_SENDER_ID",
-    appId:"YOUR_APP_ID"
+apiKey:"YOUR_API_KEY",
+authDomain:"YOUR_PROJECT_ID.firebaseapp.com",
+databaseURL:"https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
+projectId:"YOUR_PROJECT_ID",
+storageBucket:"YOUR_PROJECT_ID.appspot.com",
+messagingSenderId:"YOUR_SENDER_ID",
+appId:"YOUR_APP_ID"
 };
-firebase.initializeApp(firebaseConfig);
-const db=firebase.database();
 
-// ===== AUTH =====
+const app=initializeApp(firebaseConfig);
+const auth=getAuth(app);
+const db=getDatabase(app);
+
+let isLogin=false;
 let currentUser=null;
-function showRegister(){document.getElementById("loginForm").style.display="none";document.getElementById("registerForm").style.display="block";}
-function showLogin(){document.getElementById("registerForm").style.display="none";document.getElementById("loginForm").style.display="block";}
-function registerUser(){
-    const u=document.getElementById("usernameReg").value,e=document.getElementById("emailReg").value,p=document.getElementById("passwordReg").value;
-    if(!u||!e||!p){alert("Fill all fields");return;}
-    db.ref("users/"+u).get().then(snap=>{if(snap.exists()){alert("Username exists");return;} db.ref("users/"+u).set({username:u,email:e,password:p,coins:10000}).then(()=>{alert("Registered!");showLogin();});});
-}
-function loginUser(){
-    const u=document.getElementById("usernameLogin").value,p=document.getElementById("passwordLogin").value;
-    if(!u||!p){alert("Fill all fields");return;}
-    db.ref("users/"+u).get().then(snap=>{
-        if(snap.exists()){
-            const data=snap.val();
-            if(data.password!==p){alert("Incorrect password");return;}
-            currentUser=data;
-            document.getElementById("authBox").style.display="none";
-            document.getElementById("mainBox").style.display="block";
-            document.getElementById("welcomeText").innerText="Hello, "+data.username;
-            document.getElementById("coins").innerText=data.coins;
-        }else{alert("User not found");}
-    });
-}
-function logoutUser(){currentUser=null;document.getElementById("mainBox").style.display="none";document.getElementById("authBox").style.display="block";}
+let currentGameId=null;
+let selectedSquare=null;
 
-// ===== NAVIGATION =====
-function backToMain(){
-    if(gameId) db.ref("waitingGames/"+gameId).remove();
-    gameId=null;
-    document.getElementById("gameScreen").style.display="none";
-    document.getElementById("mainBox").style.display="block";
-    document.getElementById("waitingMessage").innerText="";
-    document.getElementById("gameArea").innerHTML="";
-}
+/* AUTH LOGIC */
 
-// ===== GAME JOIN =====
-let gameId=null,playerColor=null,currentTurn=null;
-function joinGame(type){
-    if(!currentUser){alert("Login first"); return;}
-    document.getElementById("mainBox").style.display="none";
-    document.getElementById("gameScreen").style.display="block";
-    document.getElementById("gameTitle").innerText=type;
-    if(type==="Ludo"){joinLudoFirebase();}
-    if(type==="Chess"){joinChessFirebase();}
-}
+switch.onclick=()=>{
+isLogin=!isLogin;
+formTitle.innerText=isLogin?"Login":"Register";
+submitBtn.innerText=isLogin?"Login":"Register";
+name.style.display=isLogin?"none":"block";
+switch.innerText=isLogin?"No account? Register":"Already have account? Login";
+};
 
-// ========================= LUDO REAL-TIME MULTIPLAYER =========================
-const ludoBoardSize=15,ludoTotalCells=225;
-const ludoPaths={red:[0,1,2,3,18,33,48,63,78,93,108,123,138,153,168,183,198,213,228,243,258,273,288],green:[336,337,338,339,321,306,291,276,261,246,231,216,201,186,171,156,141,126,111,96,81,66,51,36,21,6]};
-let ludoPieces={red:[],green:[]},currentDice=0;
+submitBtn.onclick=async()=>{
+error.innerText="";
+try{
+if(isLogin){
+await signInWithEmailAndPassword(auth,email.value,password.value);
+}else{
+let cred=await createUserWithEmailAndPassword(auth,email.value,password.value);
+await set(ref(db,"users/"+cred.user.uid),{
+name:name.value,
+coins:1000
+});
+}
+}catch(e){error.innerText=e.message;}
+};
 
-function renderLudoFull(){
-    const board=document.createElement("div");board.className="ludo-board";document.getElementById("gameArea").innerHTML="";document.getElementById("gameArea").appendChild(board);
-    for(let i=0;i<ludoTotalCells;i++){const cell=document.createElement("div");cell.className="ludo-cell";cell.dataset.index=i;board.appendChild(cell);}
-    ["red","green"].forEach(color=>{
-        for(let i=0;i<4;i++){
-            const piece=document.createElement("div");piece.className="piece";piece.style.background=color;piece.dataset.index=i;piece.dataset.color=color;piece.dataset.position=0;
-            piece.onclick=()=>ludoMovePieceFirebase(piece);
-            ludoPieces[color].push(piece);
-            const startCell=ludoPaths[color][0];
-            board.children[startCell].appendChild(piece);
-        }
-    });
-    const diceBtn=document.createElement("button");diceBtn.className="dice";diceBtn.innerText="Roll Dice";diceBtn.onclick=rollDiceFirebase;
-    document.getElementById("gameArea").appendChild(diceBtn);
-    updateLudoTurnDisplay();
+onAuthStateChanged(auth,user=>{
+if(user){
+currentUser=user;
+auth.classList.add("hidden");
+dashboard.classList.remove("hidden");
+}else{
+auth.classList.remove("hidden");
+dashboard.classList.add("hidden");
 }
-function updateLudoTurnDisplay(){document.getElementById("waitingMessage").innerText="Turn: "+currentTurn;}
+});
 
-// ===== Firebase Multiplayer Ludo =====
-function joinLudoFirebase(){
-    const waitingRef=db.ref("waitingGames/Ludo");
-    waitingRef.once("value").then(snapshot=>{
-        let waitingPlayer=null;
-        snapshot.forEach(snap=>{if(snap.key!==currentUser.username){waitingPlayer=snap.key;}});
-        if(waitingPlayer){
-            const newGameRef=db.ref("activeGames/"+currentUser.username+"_"+waitingPlayer);
-            const initState={players:[currentUser.username,waitingPlayer],turn:currentUser.username,dice:0,positions:{red:[0,0,0,0],green:[0,0,0,0]},winner:null};
-            newGameRef.set(initState);
-            db.ref("waitingGames/Ludo/"+waitingPlayer).remove();
-            gameId=currentUser.username+"_"+waitingPlayer;
-            playerColor="red";
-            listenLudoFirebase();
-            renderLudoFull();
-        } else {
-            db.ref("waitingGames/Ludo/"+currentUser.username).set({timestamp:Date.now()});
-            document.getElementById("waitingMessage").innerText="Waiting for opponent...";
-        }
-    });
+window.logout=()=>signOut(auth);
+
+/* GAME LOGIC */
+
+window.createGame=async(type)=>{
+const gameRef=push(ref(db,"games"));
+currentGameId=gameRef.key;
+
+await set(gameRef,{
+type:type,
+turn:"white",
+board:initialBoard(),
+players:{
+white:currentUser.uid
 }
-function listenLudoFirebase(){
-    if(!gameId) return;
-    const gameRef=db.ref("activeGames/"+gameId);
-    gameRef.on("value",snap=>{
-        const data=snap.val();
-        if(!data) return;
-        currentTurn=data.turn;
-        currentDice=data.dice;
-        updateLudoTurnDisplay();
-        ["red","green"].forEach(color=>{
-            ludoPieces[color].forEach((piece,i)=>{
-                piece.dataset.position=data.positions[color][i];
-                const board=document.querySelector(".ludo-board");
-                const cellIndex=(color==="red")?ludoPaths.red[piece.dataset.position]:ludoPaths.green[piece.dataset.position];
-                board.children[cellIndex].appendChild(piece);
-            });
-        });
-        if(data.winner){alert(data.winner+" wins!");}
-    });
+});
+
+openGame(type);
+};
+
+function openGame(type){
+dashboard.classList.add("hidden");
+gameArea.classList.remove("hidden");
+gameTitle.innerText=type.toUpperCase();
+if(type==="chess"){
+chessBoard.classList.remove("hidden");
+renderBoard();
+listenGame();
 }
-function rollDiceFirebase(){if(currentTurn!==currentUser.username){alert("Not your turn"); return;}currentDice=Math.floor(Math.random()*6)+1;db.ref("activeGames/"+gameId+"/dice").set(currentDice);}
-function ludoMovePieceFirebase(piece){
-    if(currentTurn!==currentUser.username){alert("Not your turn"); return;}
-    if(currentDice===0){alert("Roll dice first"); return;}
-    const color=piece.dataset.color;
-    let pos=parseInt(piece.dataset.position);
-    let newPos=pos+currentDice;if(newPos>27)newPos=27;
-    const gameRef=db.ref("activeGames/"+gameId);
-    gameRef.once("value").then(snap=>{
-        const data=snap.val();
-        data.positions[color][piece.dataset.index]=newPos;
-        ["red","green"].forEach(c=>{if(c===color) return; data.positions[c].forEach((p,i)=>{const opponentCell=(c==="red")?ludoPaths.red[p]:ludoPaths.green[p]; const myCell=(color==="red")?ludoPaths.red[newPos]:ludoPaths.green[newPos]; if(opponentCell===myCell){data.positions[c][i]=0;alert(color+" captured "+c+" piece!");}});});
-        if(data.positions[color].every(val=>val>=27)) data.winner=currentUser.username;
-        data.turn=(data.turn===data.players[0])?data.players[1]:data.players[0];data.dice=0;
-        gameRef.set(data);
-    });
 }
 
-// ========================= CHESS REAL-TIME MULTIPLAYER =========================
-let chessBoardCells=[],selectedCell=null,currentTurnChess=null;
-const initialChessState=[
-  ["♜","♞","♝","♛","♚","♝","♞","♜"],
-  ["♟","♟","♟","♟","♟","♟","♟","♟"],
-  ["","","","","","","",""],
-  ["","","","","","","",""],
-  ["","","","","","","",""],
-  ["","","","","","","",""],
-  ["♙","♙","♙","♙","♙","♙","♙","♙"],
-  ["♖","♘","♗","♕","♔","♗","♘","♖"]
+function initialBoard(){
+return [
+["r","n","b","q","k","b","n","r"],
+["p","p","p","p","p","p","p","p"],
+["","","","","","","",""],
+["","","","","","","",""],
+["","","","","","","",""],
+["","","","","","","",""],
+["P","P","P","P","P","P","P","P"],
+["R","N","B","Q","K","B","N","R"]
 ];
-function joinChessFirebase(){
-    const waitingRef=db.ref("waitingGames/Chess");
-    waitingRef.once("value").then(snapshot=>{
-        let waitingPlayer=null;
-        snapshot.forEach(snap=>{if(snap.key!==currentUser.username){waitingPlayer=snap.key;}});
-        if(waitingPlayer){
-            const newGameRef=db.ref("activeGames/"+currentUser.username+"_"+waitingPlayer);
-            const initState={players:[currentUser.username,waitingPlayer],turn:currentUser.username,board:initialChessState,winner:null};
-            newGameRef.set(initState);
-            db.ref("waitingGames/Chess/"+waitingPlayer).remove();
-            gameId=currentUser.username+"_"+waitingPlayer;
-            playerColor="white";
-            listenChessFirebase();
-            renderChessBoard();
-        } else {
-            db.ref("waitingGames/Chess/"+currentUser.username).set({timestamp:Date.now()});
-            document.getElementById("waitingMessage").innerText="Waiting for opponent...";
-        }
-    });
 }
 
-function listenChessFirebase(){
-    if(!gameId) return;
-    const gameRef=db.ref("activeGames/"+gameId);
-    gameRef.on("value",snap=>{
-        const data=snap.val();
-        if(!data) return;
-        currentTurnChess=data.turn;
-        renderChessBoard(data.board);
-        if(data.winner) alert(data.winner+" wins!");
-    });
+function renderBoard(){
+chessBoard.innerHTML="";
+for(let r=0;r<8;r++){
+for(let c=0;c<8;c++){
+let sq=document.createElement("div");
+sq.className="square "+((r+c)%2?"dark":"light");
+sq.dataset.row=r;
+sq.dataset.col=c;
+sq.onclick=()=>handleMove(r,c);
+chessBoard.appendChild(sq);
+}
+}
 }
 
-function renderChessBoard(boardState=null){
-    const board=document.createElement("div");board.className="chess-board";document.getElementById("gameArea").innerHTML="";document.getElementById("gameArea").appendChild(board);
-    chessBoardCells=[];
-    for(let r=0;r<8;r++){
-        for(let c=0;c<8;c++){
-            const cell=document.createElement("div");cell.className="chess-cell "+((r+c)%2===0?"light":"dark");
-            cell.dataset.row=r;cell.dataset.col=c;
-            cell.innerText=boardState?boardState[r][c]:"";
-            cell.onclick=function(){handleChessMove(r,c);}
-            board.appendChild(cell);
-            chessBoardCells.push(cell);
-        }
-    }
+async function handleMove(r,c){
+let snap=await get(ref(db,"games/"+currentGameId));
+let game=snap.val();
+if(!game)return;
+
+if(!selectedSquare){
+selectedSquare={r,c};
+}else{
+let board=game.board;
+board[r][c]=board[selectedSquare.r][selectedSquare.c];
+board[selectedSquare.r][selectedSquare.c]="";
+await update(ref(db,"games/"+currentGameId),{
+board:board,
+turn:game.turn==="white"?"black":"white"
+});
+selectedSquare=null;
+}
 }
 
-function handleChessMove(r,c){
-    if(!gameId || currentTurnChess!==currentUser.username) return;
-    const gameRef=db.ref("activeGames/"+gameId);
-    gameRef.once("value").then(snap=>{
-        const data=snap.val();
-        if(!data) return;
-        if(!selectedCell){
-            if(!data.board[r][c]) return;
-            selectedCell={row:r,col:c};
-            renderChessBoardHighlight(data.board,selectedCell);
-        } else {
-            // Move piece
-            data.board[r][c]=data.board[selectedCell.row][selectedCell.col];
-            data.board[selectedCell.row][selectedCell.col]="";
-            selectedCell=null;
-            data.turn=(data.turn===data.players[0])?data.players[1]:data.players[0];
-            gameRef.set(data);
-        }
-    });
+function listenGame(){
+onValue(ref(db,"games/"+currentGameId),(snap)=>{
+let game=snap.val();
+if(!game)return;
+let squares=document.querySelectorAll(".square");
+for(let r=0;r<8;r++){
+for(let c=0;c<8;c++){
+let index=r*8+c;
+squares[index].innerText=game.board[r][c];
+}
+}
+});
 }
 
-function renderChessBoardHighlight(boardState,sel){
-    const board=document.createElement("div");board.className="chess-board";document.getElementById("gameArea").innerHTML="";document.getElementById("gameArea").appendChild(board);
-    for(let r=0;r<8;r++){
-        for(let c=0;c<8;c++){
-            const cell=document.createElement("div");cell.className="chess-cell "+((r+c)%2===0?"light":"dark");
-            if(sel && sel.row===r && sel.col===c) cell.classList.add("selected");
-            cell.dataset.row=r;cell.dataset.col=c;
-            cell.innerText=boardState[r][c];
-            cell.onclick=function(){handleChessMove(r,c);}
-            board.appendChild(cell);
-        }
-    }
-}
+window.leaveGame=()=>{
+remove(ref(db,"games/"+currentGameId));
+location.reload();
+};
+
 </script>
 </body>
-  </html>
+</html>
