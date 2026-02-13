@@ -1,269 +1,293 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Green Arena</title>
-
 <style>
-body{
-margin:0;
-font-family:Segoe UI, sans-serif;
-background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
-color:white;
-overflow:hidden;
+body {
+  margin:0;
+  font-family:Segoe UI,sans-serif;
+  background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+  color:white;
+  overflow-x:hidden;
 }
-.hidden{display:none;}
-.center{
-display:flex;
-justify-content:center;
-align-items:center;
-height:100vh;
-flex-direction:column;
+.hidden {display:none;}
+.center {display:flex; justify-content:center; align-items:center; flex-direction:column; height:100vh;}
+.card {
+  background:rgba(255,255,255,0.08);
+  backdrop-filter:blur(12px);
+  padding:30px;
+  border-radius:20px;
+  width:350px;
+  box-shadow:0 10px 40px rgba(0,0,0,0.4);
+  transition:0.4s;
 }
-.card{
-background:rgba(255,255,255,0.08);
-backdrop-filter:blur(15px);
-padding:30px;
-border-radius:20px;
-width:350px;
-box-shadow:0 10px 40px rgba(0,0,0,0.4);
-transition:0.4s;
+input {
+  width:100%;
+  padding:12px;
+  margin:8px 0;
+  border:none;
+  border-radius:8px;
 }
-input{
-width:100%;
-padding:12px;
-margin:8px 0;
-border:none;
-border-radius:8px;
+button {
+  width:100%;
+  padding:12px;
+  margin-top:10px;
+  border:none;
+  border-radius:8px;
+  background:#00c9a7;
+  color:white;
+  font-weight:bold;
+  cursor:pointer;
+  transition:0.3s;
 }
-button{
-width:100%;
-padding:12px;
-margin-top:10px;
-border:none;
-border-radius:8px;
-background:#00c9a7;
-color:white;
-font-weight:bold;
-cursor:pointer;
-transition:0.3s;
+button:hover {background:#00b091;}
+.switch {
+  text-align:center;
+  margin-top:15px;
+  cursor:pointer;
+  color:#00ffd0;
 }
-button:hover{background:#00b091;}
-.board{
-display:grid;
-grid-template-columns:repeat(8,1fr);
-width:90vmin;
-height:90vmin;
-margin:auto;
+#error {color:#ff6b6b; margin-top:10px; text-align:center;}
+.board {
+  display:grid;
+  grid-template-columns:repeat(8,1fr);
+  width:90vmin;
+  height:90vmin;
+  margin:auto;
 }
-.square{
-display:flex;
-align-items:center;
-justify-content:center;
-font-size:4vmin;
-cursor:pointer;
-transition:0.2s;
+.square {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:4vmin;
+  cursor:pointer;
+  transition:0.2s;
 }
-.light{background:#f0d9b5;}
-.dark{background:#b58863;}
-.selected{box-shadow:inset 0 0 0 4px yellow;}
+.light {background:#f0d9b5;}
+.dark {background:#b58863;}
+.selected {box-shadow:inset 0 0 0 4px yellow;}
 </style>
 </head>
 
 <body>
 
-<!-- AUTH -->
+<!-- AUTH SCREEN -->
 <div id="auth" class="center">
-<div class="card">
-<h2 id="formTitle">Register</h2>
-<input id="name" placeholder="Full Name">
-<input id="email" placeholder="Email">
-<input id="password" type="password" placeholder="Password">
-<button id="submitBtn">Register</button>
-<p id="switch" style="cursor:pointer;text-align:center;">Already have account? Login</p>
-<p id="error" style="color:#ff6b6b;"></p>
-</div>
+  <div class="card">
+    <h2 id="formTitle">Register</h2>
+    <input id="name" placeholder="Full Name"/>
+    <input id="email" placeholder="Email"/>
+    <input type="password" id="password" placeholder="Password"/>
+    <button id="submitBtn">Register</button>
+    <div id="switchMode" class="switch">Already have an account? Login</div>
+    <div id="error"></div>
+  </div>
 </div>
 
 <!-- DASHBOARD -->
 <div id="dashboard" class="hidden center">
-<h2>Green Arena</h2>
-<button onclick="createGame('chess')">Play Chess</button>
-<button onclick="createGame('ludo')">Play Ludo</button>
-<button onclick="logout()">Logout</button>
+  <h2>Green Arena</h2>
+  <div id="userDisplay"></div>
+  <button onclick="createGame('chess')">Play Chess</button>
+  <button onclick="createGame('ludo')">Play Ludo</button>
+  <button onclick="logout()">Logout</button>
 </div>
 
 <!-- GAME AREA -->
 <div id="gameArea" class="hidden center">
-<h3 id="gameTitle"></h3>
-<div id="chessBoard" class="board hidden"></div>
-<button onclick="leaveGame()">Leave Game</button>
+  <h3 id="gameTitle"></h3>
+  <div id="chessBoard" class="board hidden"></div>
+  <button onclick="leaveGame()">Leave Game</button>
 </div>
 
 <script type="module">
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut }
-from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getDatabase, ref, set, get, push, onValue, update, remove }
-from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getDatabase, ref, set, push, onValue, update, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
 /* 🔥 REPLACE WITH YOUR FIREBASE CONFIG */
-const firebaseConfig={
-apiKey:"YOUR_API_KEY",
-authDomain:"YOUR_PROJECT_ID.firebaseapp.com",
-databaseURL:"https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
-projectId:"YOUR_PROJECT_ID",
-storageBucket:"YOUR_PROJECT_ID.appspot.com",
-messagingSenderId:"YOUR_SENDER_ID",
-appId:"YOUR_APP_ID"
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+  databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT_ID.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
 };
 
-const app=initializeApp(firebaseConfig);
-const auth=getAuth(app);
-const db=getDatabase(app);
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getDatabase(app);
 
-let isLogin=false;
-let currentUser=null;
-let currentGameId=null;
-let selectedSquare=null;
-
-/* AUTH LOGIC */
-
-switch.onclick=()=>{
-isLogin=!isLogin;
-formTitle.innerText=isLogin?"Login":"Register";
-submitBtn.innerText=isLogin?"Login":"Register";
-name.style.display=isLogin?"none":"block";
-switch.innerText=isLogin?"No account? Register":"Already have account? Login";
-};
-
-submitBtn.onclick=async()=>{
-error.innerText="";
-try{
-if(isLogin){
-await signInWithEmailAndPassword(auth,email.value,password.value);
-}else{
-let cred=await createUserWithEmailAndPassword(auth,email.value,password.value);
-await set(ref(db,"users/"+cred.user.uid),{
-name:name.value,
-coins:1000
-});
-}
-}catch(e){error.innerText=e.message;}
-};
-
+/* DOM ELEMENTS */
 const authContainer = document.getElementById("auth");
 const dashboardContainer = document.getElementById("dashboard");
+const submitBtn = document.getElementById("submitBtn");
+const switchMode = document.getElementById("switchMode");
+const formTitle = document.getElementById("formTitle");
+const errorDiv = document.getElementById("error");
 
-onAuthStateChanged(auth,(user)=>{
-    if(user){
-        currentUser = user;
-        authContainer.classList.add("hidden");
-        dashboardContainer.classList.remove("hidden");
+let isLogin = false;
+let currentUser = null;
+let currentGameId = null;
+let selectedSquare = null;
+
+/* SWITCH REGISTER/LOGIN */
+switchMode.addEventListener("click", () => {
+  isLogin = !isLogin;
+  formTitle.innerText = isLogin ? "Login" : "Register";
+  submitBtn.innerText = isLogin ? "Login" : "Register";
+  switchMode.innerText = isLogin ? "Don't have an account? Register" : "Already have an account? Login";
+  document.getElementById("name").style.display = isLogin ? "none" : "block";
+  errorDiv.innerText = "";
+});
+
+/* REGISTER / LOGIN BUTTON */
+submitBtn.addEventListener("click", async () => {
+  const name = document.getElementById("name").value.trim();
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value.trim();
+
+  errorDiv.innerText = "";
+
+  if (!email || !password) {
+    errorDiv.innerText = "Please fill all fields.";
+    return;
+  }
+
+  try {
+    if (isLogin) {
+      await signInWithEmailAndPassword(auth, email, password);
     } else {
-        authContainer.classList.remove("hidden");
-        dashboardContainer.classList.add("hidden");
+      if (!name) {
+        errorDiv.innerText = "Name required.";
+        return;
+      }
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+      await set(ref(db, "users/" + user.uid), { name, email, coins: 1000 });
     }
+  } catch (err) {
+    errorDiv.innerText = err.message;
+  }
 });
 
-window.logout=()=>signOut(auth);
-
-/* GAME LOGIC */
-
-window.createGame=async(type)=>{
-const gameRef=push(ref(db,"games"));
-currentGameId=gameRef.key;
-
-await set(gameRef,{
-type:type,
-turn:"white",
-board:initialBoard(),
-players:{
-white:currentUser.uid
-}
+/* AUTH STATE CHANGE */
+onAuthStateChanged(auth, user => {
+  if (user) {
+    currentUser = user;
+    authContainer.classList.add("hidden");
+    dashboardContainer.classList.remove("hidden");
+    document.getElementById("userDisplay").innerText = user.email;
+  } else {
+    authContainer.classList.remove("hidden");
+    dashboardContainer.classList.add("hidden");
+  }
 });
 
-openGame(type);
+/* LOGOUT */
+window.logout = () => signOut(auth);
+
+/* CREATE GAME */
+window.createGame = async (type) => {
+  const gameRef = push(ref(db, "games"));
+  currentGameId = gameRef.key;
+  await set(gameRef, {
+    type,
+    turn: "white",
+    board: initialBoard(),
+    players: { white: currentUser.uid }
+  });
+  openGame(type);
 };
 
-function openGame(type){
-dashboard.classList.add("hidden");
-gameArea.classList.remove("hidden");
-gameTitle.innerText=type.toUpperCase();
-if(type==="chess"){
-chessBoard.classList.remove("hidden");
-renderBoard();
-listenGame();
-}
-}
-
-function initialBoard(){
-return [
-["r","n","b","q","k","b","n","r"],
-["p","p","p","p","p","p","p","p"],
-["","","","","","","",""],
-["","","","","","","",""],
-["","","","","","","",""],
-["","","","","","","",""],
-["P","P","P","P","P","P","P","P"],
-["R","N","B","Q","K","B","N","R"]
-];
+/* OPEN GAME */
+function openGame(type) {
+  dashboardContainer.classList.add("hidden");
+  document.getElementById("gameArea").classList.remove("hidden");
+  document.getElementById("gameTitle").innerText = type.toUpperCase();
+  if (type === "chess") {
+    document.getElementById("chessBoard").classList.remove("hidden");
+    renderBoard();
+    listenGame();
+  }
 }
 
-function renderBoard(){
-chessBoard.innerHTML="";
-for(let r=0;r<8;r++){
-for(let c=0;c<8;c++){
-let sq=document.createElement("div");
-sq.className="square "+((r+c)%2?"dark":"light");
-sq.dataset.row=r;
-sq.dataset.col=c;
-sq.onclick=()=>handleMove(r,c);
-chessBoard.appendChild(sq);
-}
-}
-}
-
-async function handleMove(r,c){
-let snap=await get(ref(db,"games/"+currentGameId));
-let game=snap.val();
-if(!game)return;
-
-if(!selectedSquare){
-selectedSquare={r,c};
-}else{
-let board=game.board;
-board[r][c]=board[selectedSquare.r][selectedSquare.c];
-board[selectedSquare.r][selectedSquare.c]="";
-await update(ref(db,"games/"+currentGameId),{
-board:board,
-turn:game.turn==="white"?"black":"white"
-});
-selectedSquare=null;
-}
+/* INITIAL BOARD FOR CHESS */
+function initialBoard() {
+  return [
+    ["r","n","b","q","k","b","n","r"],
+    ["p","p","p","p","p","p","p","p"],
+    ["","","","","","","",""],
+    ["","","","","","","",""],
+    ["","","","","","","",""],
+    ["","","","","","","",""],
+    ["P","P","P","P","P","P","P","P"],
+    ["R","N","B","Q","K","B","N","R"]
+  ];
 }
 
-function listenGame(){
-onValue(ref(db,"games/"+currentGameId),(snap)=>{
-let game=snap.val();
-if(!game)return;
-let squares=document.querySelectorAll(".square");
-for(let r=0;r<8;r++){
-for(let c=0;c<8;c++){
-let index=r*8+c;
-squares[index].innerText=game.board[r][c];
-}
-}
-});
+/* RENDER CHESS BOARD */
+function renderBoard() {
+  const chessBoard = document.getElementById("chessBoard");
+  chessBoard.innerHTML = "";
+  for (let r = 0; r < 8; r++) {
+    for (let c = 0; c < 8; c++) {
+      const sq = document.createElement("div");
+      sq.className = "square " + ((r + c) % 2 ? "dark" : "light");
+      sq.dataset.row = r;
+      sq.dataset.col = c;
+      sq.onclick = () => handleMove(r, c);
+      chessBoard.appendChild(sq);
+    }
+  }
 }
 
-window.leaveGame=()=>{
-remove(ref(db,"games/"+currentGameId));
-location.reload();
+/* HANDLE CHESS MOVE */
+async function handleMove(r, c) {
+  if (!currentGameId) return;
+  const snap = await get(ref(db, "games/" + currentGameId));
+  const game = snap.val();
+  if (!game) return;
+
+  if (!selectedSquare) {
+    selectedSquare = { r, c };
+  } else {
+    const board = game.board;
+    board[r][c] = board[selectedSquare.r][selectedSquare.c];
+    board[selectedSquare.r][selectedSquare.c] = "";
+    await update(ref(db, "games/" + currentGameId), {
+      board,
+      turn: game.turn === "white" ? "black" : "white"
+    });
+    selectedSquare = null;
+  }
+}
+
+/* LISTEN GAME */
+function listenGame() {
+  const chessBoard = document.getElementById("chessBoard");
+  onValue(ref(db, "games/" + currentGameId), snap => {
+    const game = snap.val();
+    if (!game) return;
+    const squares = chessBoard.querySelectorAll(".square");
+    for (let r = 0; r < 8; r++) {
+      for (let c = 0; c < 8; c++) {
+        squares[r * 8 + c].innerText = game.board[r][c];
+      }
+    }
+  });
+}
+
+/* LEAVE GAME */
+window.leaveGame = () => {
+  if (currentGameId) remove(ref(db, "games/" + currentGameId));
+  location.reload();
 };
-
 </script>
+
 </body>
 </html>
