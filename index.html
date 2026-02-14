@@ -85,6 +85,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.2.0/firebas
 import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.2.0/firebase-auth.js";
 import { getDatabase, ref, set, push, update, remove, onValue, get } from "https://www.gstatic.com/firebasejs/10.2.0/firebase-database.js";
 
+// --------------------
 // Firebase Config
 const firebaseConfig = {
   apiKey: "AIzaSyDSInVpQdq_ZkXt4PPhKVriH-eIuJW1vgg",
@@ -99,6 +100,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth();
 const db = getDatabase();
 
+// --------------------
 // DOM Elements
 const authContainer=document.getElementById("authContainer");
 const dashboardContainer=document.getElementById("dashboardContainer");
@@ -208,16 +210,13 @@ function openGame(type){
 window.leaveGame=()=>{ if(currentGameId) remove(ref(db,"games/"+currentGameId)); location.reload(); }
 
 // --------------------
-// Dice Roll for Ludo
+// Ludo / Chess placeholder functions for next step
 function rollDice(){ if(!ludoState) return; let val=Math.floor(Math.random()*6)+1; diceResult.innerText=val; ludoMove(val);}
-function ludoMove(val){ /* Full Ludo logic including moves, captures, AI */ console.log("Move dice:",val); }
-
-// --------------------
-// Placeholder Chess/Ludo render & listen functions
+function ludoMove(val){ console.log("Dice rolled:",val); }
 function renderChess(){chessBoard.classList.remove("hidden");}
-function listenChess(){ /* Full chess move listener & Firebase integration */ }
+function listenChess(){ console.log("Chess listener ready"); }
 function renderLudo(){ludoBoard.classList.remove("hidden");}
-function listenLudo(){ /* Full ludo moves listener & Firebase integration */ }
+function listenLudo(){ console.log("Ludo listener ready"); }
 
 </script>
 </body>
