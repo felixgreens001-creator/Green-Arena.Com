@@ -1,113 +1,94 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Green Arena</title>
+
+<!-- -------------------------
+     1️⃣ CSS: Modern Styling & Transitions
+------------------------- -->
 <style>
-body {
-  margin:0;
-  font-family:Segoe UI,sans-serif;
-  background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
-  color:white;
-  overflow-x:hidden;
-}
-.hidden {display:none;}
-.center {display:flex; justify-content:center; align-items:center; flex-direction:column; height:100vh;}
-.card {
-  background:rgba(255,255,255,0.08);
-  backdrop-filter:blur(12px);
-  padding:30px;
-  border-radius:20px;
-  width:350px;
-  box-shadow:0 10px 40px rgba(0,0,0,0.4);
-  transition:0.4s;
-}
-input {
-  width:100%;
-  padding:12px;
-  margin:8px 0;
-  border:none;
-  border-radius:8px;
-}
-button {
-  width:100%;
-  padding:12px;
-  margin-top:10px;
-  border:none;
-  border-radius:8px;
-  background:#00c9a7;
-  color:white;
-  font-weight:bold;
-  cursor:pointer;
-  transition:0.3s;
-}
-button:hover {background:#00b091;}
-.switch {
-  text-align:center;
-  margin-top:15px;
-  cursor:pointer;
-  color:#00ffd0;
-}
-#error {color:#ff6b6b; margin-top:10px; text-align:center;}
-.board {
-  display:grid;
-  grid-template-columns:repeat(8,1fr);
-  width:90vmin;
-  height:90vmin;
-  margin:auto;
-}
-.square {
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:4vmin;
-  cursor:pointer;
-  transition:0.2s;
-}
-.light {background:#f0d9b5;}
-.dark {background:#b58863;}
-.selected {box-shadow:inset 0 0 0 4px yellow;}
+  body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #6a11cb, #2575fc);
+    color: #fff;
+    transition: background 0.5s ease;
+  }
+
+  .hidden { display: none; }
+  .container { max-width: 500px; margin: 50px auto; padding: 20px; background: rgba(255,255,255,0.1); border-radius: 15px; box-shadow: 0 10px 20px rgba(0,0,0,0.2); transition: all 0.4s ease; }
+  h2, h3 { text-align: center; margin-bottom: 20px; }
+  input { width: 100%; padding: 12px 15px; margin: 10px 0; border: none; border-radius: 10px; outline: none; font-size: 16px; background: rgba(255,255,255,0.2); color: #fff; }
+  button { width: 100%; padding: 12px; margin: 10px 0; border: none; border-radius: 12px; font-size: 18px; cursor: pointer; transition: all 0.3s ease; }
+  button:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+  .switch { background: transparent; color: #fff; font-size: 14px; cursor: pointer; text-align: center; display: block; margin-top: 10px; }
+  #errorDiv { color: #ff6b6b; text-align: center; margin-bottom: 10px; }
+
+  /* Dashboard Cards */
+  .dashboard { display: flex; flex-direction: column; gap: 15px; }
+  .game-card { background: rgba(255,255,255,0.15); border-radius: 15px; padding: 20px; text-align: center; cursor: pointer; transition: transform 0.3s ease, background 0.3s ease; }
+  .game-card:hover { background: rgba(255,255,255,0.25); transform: translateY(-5px); }
+
+  /* Chess Board */
+  #chessBoard { display: grid; grid-template-columns: repeat(8, 50px); grid-template-rows: repeat(8, 50px); margin: 20px auto; gap: 0; border-radius: 10px; overflow: hidden; }
+  .square { display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 24px; cursor: pointer; transition: background 0.3s ease; }
+  .light { background: #f0d9b5; color: #000; }
+  .dark { background: #b58863; color: #fff; }
 </style>
 </head>
-
 <body>
 
-<!-- AUTH SCREEN -->
-<div id="auth" class="center">
-  <div class="card">
-    <h2 id="formTitle">Register</h2>
-    <input id="name" placeholder="Full Name"/>
-    <input id="email" placeholder="Email"/>
-    <input type="password" id="password" placeholder="Password"/>
-    <button id="submitBtn">Register</button>
-    <div id="switchMode" class="switch">Already have an account? Login</div>
-    <div id="error"></div>
-  </div>
+<!-- -------------------------
+     2️⃣ Authentication Container
+------------------------- -->
+<div id="authContainer" class="container">
+  <h2 id="formTitle">Login</h2>
+  <div id="errorDiv"></div>
+  <input type="text" id="name" placeholder="Username" style="display:none;">
+  <input type="email" id="email" placeholder="Email">
+  <input type="password" id="password" placeholder="Password">
+  <button id="submitBtn">Login</button>
+  <span id="switchMode" class="switch">Don't have an account? Register</span>
 </div>
 
-<!-- DASHBOARD -->
-<div id="dashboard" class="hidden center">
-  <h2>Green Arena</h2>
-  <div id="userDisplay"></div>
-  <button onclick="createGame('chess')">Play Chess</button>
-  <button onclick="createGame('ludo')">Play Ludo</button>
+<!-- -------------------------
+     3️⃣ Dashboard Container
+------------------------- -->
+<div id="dashboardContainer" class="container hidden">
+  <h3>Hello, <span id="userDisplay"></span></h3>
+  <div class="dashboard">
+    <div class="game-card" onclick="createGame('ludo')">
+      <h4>Ludo</h4>
+      <p>Play against another player and win coins</p>
+    </div>
+    <div class="game-card" onclick="createGame('chess')">
+      <h4>Chess</h4>
+      <p>Challenge a real player in strategic battle</p>
+    </div>
+  </div>
   <button onclick="logout()">Logout</button>
 </div>
 
-<!-- GAME AREA -->
-<div id="gameArea" class="hidden center">
+<!-- -------------------------
+     4️⃣ Game Area
+------------------------- -->
+<div id="gameArea" class="container hidden">
   <h3 id="gameTitle"></h3>
-  <div id="chessBoard" class="board hidden"></div>
+  <div id="chessBoard" class="hidden"></div>
   <button onclick="leaveGame()">Leave Game</button>
 </div>
 
+<!-- -------------------------
+     5️⃣ Firebase + JS
+------------------------- -->
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getDatabase, ref, set, push, onValue, update, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.2.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.2.0/firebase-auth.js";
+import { getDatabase, ref, set, push, update, remove, onValue, get } from "https://www.gstatic.com/firebasejs/10.2.0/firebase-database.js";
 
-/* 🔥 REPLACE WITH YOUR FIREBASE CONFIG */
+// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyDSInVpQdq_ZkXt4PPhKVriH-eIuJW1vgg",
   authDomain: "green-arena-68fd8.firebaseapp.com",
@@ -117,25 +98,23 @@ const firebaseConfig = {
   messagingSenderId: "5088114396",
   appId: "1:5088114396:web:f397d3f21500be65ab6619"
 };
-
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getDatabase(app);
+const auth = getAuth();
+const db = getDatabase();
 
-/* DOM ELEMENTS */
-const authContainer = document.getElementById("auth");
-const dashboardContainer = document.getElementById("dashboard");
+// DOM Elements
+const authContainer = document.getElementById("authContainer");
+const dashboardContainer = document.getElementById("dashboardContainer");
 const submitBtn = document.getElementById("submitBtn");
 const switchMode = document.getElementById("switchMode");
 const formTitle = document.getElementById("formTitle");
-const errorDiv = document.getElementById("error");
-
-let isLogin = false;
+const errorDiv = document.getElementById("errorDiv");
+let isLogin = true;
 let currentUser = null;
 let currentGameId = null;
 let selectedSquare = null;
 
-/* SWITCH REGISTER/LOGIN */
+// Switch mode
 switchMode.addEventListener("click", () => {
   isLogin = !isLogin;
   formTitle.innerText = isLogin ? "Login" : "Register";
@@ -145,12 +124,11 @@ switchMode.addEventListener("click", () => {
   errorDiv.innerText = "";
 });
 
-/* REGISTER / LOGIN BUTTON */
+// Register/Login Button
 submitBtn.addEventListener("click", async () => {
   const name = document.getElementById("name").value.trim();
   const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value.trim();
-
   errorDiv.innerText = "";
 
   if (!email || !password) {
@@ -160,21 +138,22 @@ submitBtn.addEventListener("click", async () => {
 
   try {
     if (isLogin) {
-      // LOGIN
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      console.log("Logged in user:", userCredential.user.email);
-      alert("Login successful!");
+      currentUser = userCredential.user;
+      authContainer.classList.add("hidden");
+      dashboardContainer.classList.remove("hidden");
+      document.getElementById("userDisplay").innerText = currentUser.email;
+      console.log("Logged in user:", currentUser.email);
     } else {
-      // REGISTER
-      if (!name) {
-        errorDiv.innerText = "Name required.";
-        return;
-      }
+      if (!name) { errorDiv.innerText = "Name required."; return; }
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
       await set(ref(db, "users/" + user.uid), { name, email, coins: 1000 });
+      currentUser = user;
+      authContainer.classList.add("hidden");
+      dashboardContainer.classList.remove("hidden");
+      document.getElementById("userDisplay").innerText = currentUser.email;
       console.log("Registered user:", user.email);
-      alert("Registration successful! You are now logged in.");
     }
   } catch (err) {
     console.error(err.code, err.message);
@@ -183,7 +162,7 @@ submitBtn.addEventListener("click", async () => {
   }
 });
 
-/* AUTH STATE CHANGE */
+// Auth state listener
 onAuthStateChanged(auth, user => {
   if (user) {
     currentUser = user;
@@ -196,106 +175,85 @@ onAuthStateChanged(auth, user => {
   }
 });
 
-/* LOGOUT */
+// Logout
 window.logout = () => signOut(auth);
 
-/* CREATE GAME */
+// Game logic (Chess)
 window.createGame = async (type) => {
   const gameRef = push(ref(db, "games"));
   currentGameId = gameRef.key;
   await set(gameRef, {
     type,
     turn: "white",
-    board: initialBoard(),
+    board: [
+      ["r","n","b","q","k","b","n","r"],
+      ["p","p","p","p","p","p","p","p"],
+      ["","","","","","","",""],
+      ["","","","","","","",""],
+      ["","","","","","","",""],
+      ["","","","","","","",""],
+      ["P","P","P","P","P","P","P","P"],
+      ["R","N","B","Q","K","B","N","R"]
+    ],
     players: { white: currentUser.uid }
   });
   openGame(type);
 };
 
-/* OPEN GAME */
 function openGame(type) {
   dashboardContainer.classList.add("hidden");
   document.getElementById("gameArea").classList.remove("hidden");
   document.getElementById("gameTitle").innerText = type.toUpperCase();
-  if (type === "chess") {
-    document.getElementById("chessBoard").classList.remove("hidden");
-    renderBoard();
-    listenGame();
-  }
+  if (type === "chess") { renderBoard(); listenGame(); }
 }
 
-/* INITIAL BOARD FOR CHESS */
-function initialBoard() {
-  return [
-    ["r","n","b","q","k","b","n","r"],
-    ["p","p","p","p","p","p","p","p"],
-    ["","","","","","","",""],
-    ["","","","","","","",""],
-    ["","","","","","","",""],
-    ["","","","","","","",""],
-    ["P","P","P","P","P","P","P","P"],
-    ["R","N","B","Q","K","B","N","R"]
-  ];
-}
-
-/* RENDER CHESS BOARD */
 function renderBoard() {
   const chessBoard = document.getElementById("chessBoard");
+  chessBoard.classList.remove("hidden");
   chessBoard.innerHTML = "";
-  for (let r = 0; r < 8; r++) {
-    for (let c = 0; c < 8; c++) {
+  for (let r=0; r<8; r++) {
+    for (let c=0; c<8; c++) {
       const sq = document.createElement("div");
-      sq.className = "square " + ((r + c) % 2 ? "dark" : "light");
+      sq.className = "square " + ((r+c)%2 ? "dark":"light");
       sq.dataset.row = r;
       sq.dataset.col = c;
-      sq.onclick = () => handleMove(r, c);
+      sq.onclick = () => handleMove(r,c);
       chessBoard.appendChild(sq);
     }
   }
 }
 
-/* HANDLE CHESS MOVE */
-async function handleMove(r, c) {
+async function handleMove(r,c) {
   if (!currentGameId) return;
-  const snap = await get(ref(db, "games/" + currentGameId));
+  const snap = await get(ref(db,"games/"+currentGameId));
   const game = snap.val();
   if (!game) return;
-
-  if (!selectedSquare) {
-    selectedSquare = { r, c };
-  } else {
+  if (!selectedSquare) { selectedSquare={r,c}; } 
+  else {
     const board = game.board;
     board[r][c] = board[selectedSquare.r][selectedSquare.c];
     board[selectedSquare.r][selectedSquare.c] = "";
-    await update(ref(db, "games/" + currentGameId), {
-      board,
-      turn: game.turn === "white" ? "black" : "white"
-    });
+    await update(ref(db,"games/"+currentGameId),{board, turn: game.turn==="white"?"black":"white"});
     selectedSquare = null;
   }
 }
 
-/* LISTEN GAME */
 function listenGame() {
   const chessBoard = document.getElementById("chessBoard");
-  onValue(ref(db, "games/" + currentGameId), snap => {
+  onValue(ref(db,"games/"+currentGameId), snap => {
     const game = snap.val();
     if (!game) return;
     const squares = chessBoard.querySelectorAll(".square");
-    for (let r = 0; r < 8; r++) {
-      for (let c = 0; c < 8; c++) {
-        squares[r * 8 + c].innerText = game.board[r][c];
+    for(let r=0;r<8;r++){
+      for(let c=0;c<8;c++){
+        squares[r*8+c].innerText = game.board[r][c];
       }
     }
   });
 }
 
-/* LEAVE GAME */
 window.leaveGame = () => {
-  if (currentGameId) remove(ref(db, "games/" + currentGameId));
+  if(currentGameId) remove(ref(db,"games/"+currentGameId));
   location.reload();
 };
 </script>
-
-</body>
-</html>
