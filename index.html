@@ -48,8 +48,8 @@ button:hover{transform:translateY(-3px);box-shadow:0 5px 15px rgba(0,0,0,0.3);}
 <h3>Hello, <span id="userDisplay"></span></h3>
 <p id="coinsDisplay">Coins: 0</p>
 <div class="dashboard">
-  <div class="game-card" onclick="selectGameMode('ludo')"><h4>Ludo</h4><p>Play against player or AI</p></div>
-  <div class="game-card" onclick="selectGameMode('chess')"><h4>Chess</h4><p>Play against player or AI</p></div>
+  <div class="game-card"><h4>Ludo</h4><p>Play against player or AI</p></div>
+  <div class="game-card"><h4>Chess</h4><p>Play against player or AI</p></div>
 </div>
 <button onclick="logout()">Logout</button>
 </div>
@@ -85,7 +85,6 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.2.0/firebas
 import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.2.0/firebase-auth.js";
 import { getDatabase, ref, set, push, update, remove, onValue, get } from "https://www.gstatic.com/firebasejs/10.2.0/firebase-database.js";
 
-// --------------------
 // Firebase Config
 const firebaseConfig = {
   apiKey: "AIzaSyDSInVpQdq_ZkXt4PPhKVriH-eIuJW1vgg",
@@ -100,7 +99,6 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth();
 const db = getDatabase();
 
-// --------------------
 // DOM Elements
 const authContainer=document.getElementById("authContainer");
 const dashboardContainer=document.getElementById("dashboardContainer");
@@ -178,6 +176,15 @@ function startAI(){stakeCoins=0; coinSelector.classList.add("hidden"); startGame
 function startPlayerGame(){stakeCoins=parseInt(document.getElementById("stakeCoins").value); if(!stakeCoins||stakeCoins<1){alert("Enter valid coins"); return;} coinSelector.classList.add("hidden"); startGame(false);}
 
 // --------------------
+// Attach click events to cards (fix unresponsive issue)
+document.querySelectorAll('.game-card').forEach(card=>{
+  card.addEventListener('click',()=>{
+    const type = card.querySelector('h4').innerText.toLowerCase();
+    selectGameMode(type);
+  });
+});
+
+// --------------------
 // Start Game
 async function startGame(isAI){
   const gameRef=push(ref(db,"games"));
@@ -210,7 +217,7 @@ function openGame(type){
 window.leaveGame=()=>{ if(currentGameId) remove(ref(db,"games/"+currentGameId)); location.reload(); }
 
 // --------------------
-// Ludo / Chess placeholder functions for next step
+// Ludo / Chess placeholder functions
 function rollDice(){ if(!ludoState) return; let val=Math.floor(Math.random()*6)+1; diceResult.innerText=val; ludoMove(val);}
 function ludoMove(val){ console.log("Dice rolled:",val); }
 function renderChess(){chessBoard.classList.remove("hidden");}
