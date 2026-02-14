@@ -160,8 +160,12 @@ submitBtn.addEventListener("click", async () => {
 
   try {
     if (isLogin) {
-      await signInWithEmailAndPassword(auth, email, password);
+      // LOGIN
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      console.log("Logged in user:", userCredential.user.email);
+      alert("Login successful!");
     } else {
+      // REGISTER
       if (!name) {
         errorDiv.innerText = "Name required.";
         return;
@@ -169,9 +173,13 @@ submitBtn.addEventListener("click", async () => {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
       await set(ref(db, "users/" + user.uid), { name, email, coins: 1000 });
+      console.log("Registered user:", user.email);
+      alert("Registration successful! You are now logged in.");
     }
   } catch (err) {
+    console.error(err.code, err.message);
     errorDiv.innerText = err.message;
+    alert(err.message);
   }
 });
 
